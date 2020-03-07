@@ -1,0 +1,68 @@
+#:set unit 10
+<UiBox>
+    padding:5
+    canvas.before:
+        Color:
+            rgba: self.bcol
+        Rectangle:
+            size:self.size
+            pos:self.pos
+<Square>
+    battle:self.parent.parent.parent.parent if self.parent and self.parent.parent else None
+    size_hint:None,None
+
+    canvas.before:
+        Color:
+            rgba: self.bcol if not self.highlight else [self.bcol[0],self.bcol[1]+.4,*self.bcol[2:]]
+        Rectangle:
+            size:self.height*2,self.width
+            pos:self.x,self.y-self.height/2
+            source:"images/grasstile.png" if not self.active else "images/grasstile_active.png"
+<Grid>
+
+    battle:self.parent
+
+<Battle>
+    orientation:"horizontal"
+
+    UiBox:
+        bcol:(0,0,0,1)
+        FloatLayout:
+            Grid:
+                pos:gamescreen.center_x,100
+
+    UiBox:
+        bcol:(0,0,0,0)
+
+        UiBox:
+            size_hint_x:.2
+            bcol:(1,.5,.5,1)
+            orientation:"vertical"
+            UiBox:
+                size_hint_y:.2
+                bcol:(.1,.8,.8,1)
+                Label:
+                    text:"active char"
+            UiBox:
+                size_hint_y:.2
+                bcol:(.8,.8,.1,1)
+                Label:
+                    text:"target_char"
+
+            UiBox:
+                size_hint_y:.6
+                bcol:(.1,.8,.8,1)
+                Label:
+                    text:"skills"
+
+        UiBox:
+            size_hint_x:.73
+            bcol:(1,0,0,0)
+            id:gamescreen
+
+
+        UiBox:
+            size_hint_x:.07
+            bcol:(0,0,1,.5)
+
+Battle

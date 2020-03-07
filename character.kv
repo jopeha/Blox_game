@@ -1,0 +1,13 @@
+<Block>
+    size_hint:None,None
+    size:(self.tile.width*self.scale,self.tile.height*2.125*self.scale) if self.tile is not None else (10,10)
+    id:BLOCK
+
+    RelativeLayout:
+        pos:(self.parent.animpos[0],self.parent.animpos[1]+self.height/4)
+        canvas.before:
+            Color:
+                rgba:(1,1,1,1)
+            Rectangle:
+                size:BLOCK.size
+                source:BLOCK.sprite
