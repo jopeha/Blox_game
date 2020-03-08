@@ -109,6 +109,19 @@ class Grid(RelativeLayout):
         block.zefresh()
 
     @property
+    def state(self):
+        return self.battle.state
+
+    @state.setter
+    def state(self,value):
+        if value=="ready":
+            print()
+            for pos,i in enumerate(reversed(self.tiles)):
+                x="x" if isinstance(i.block,Block) else " "
+                print(x,end=f"|"+(str("\n" if i.gpos[1]==0 else "")))
+        self.battle.state=value
+
+    @property
     def highlighted(self):
         return self._highlighted
 
@@ -129,7 +142,7 @@ class Grid(RelativeLayout):
 
         if self._active is not None:
             self._active.active=False
-
+        self.highlighted=[]
         value.active=True
         self._active=value
 

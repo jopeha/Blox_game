@@ -53,40 +53,41 @@ class Block(RelativeLayout):
     def hop(self,tile):
         last=True
         d=distance(self.tile.pos,tile.pos)
+        self.parent.state="anim"
+        self.tile.block = Air()
 
         m=d/150
         t=.5+.1*m
-
-
         Animation(center_x=tile.center_x,center_y=tile.center_y+tile.blockheight,duration=t).start(self)
         a=Animation(ay=50+50*m,duration=t*.5,t="out_quad")
-
-
         b=Animation(ay=0,duration=t*.5,t="in_quad")
-
         i=0
         z=0
         t = "self"
-
+        print(f"im hopping to {tile.gpos} on {'air' if isinstance(tile.block,Air) else 'a block'}")
         if not isinstance(tile.block,Air):
             l=lambda a: [self.hit(tile.block), self.hop(random.choice(tile.adjacenttiles)) ]
             b.on_complete=l
             last=False
-            z=0
-            tile.block.zefresh(z=z,i=1,t="target")
+            z=sum(tile.block.gpos)
+            i=1
 
         a.on_complete=lambda a:self.zefresh(z=z,i=i,t=t)
 
         f=a+b
         f.start(self)
         self.parent.highlighted=[]
-        self.tile.block = Air()
 
         if last:
+
             self.tile=tile
+            print(f"last my tile is in {self.tile.gpos}")
+
+            self.parent.state="ready"
 
     def on_tile(self,_,tile):
         tile.block=self
+        print(f"my tile is in {tile.gpos}")
 
     def hit(self,block):
         block.health-=self.damage

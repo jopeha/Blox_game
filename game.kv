@@ -20,15 +20,15 @@
             source:"images/grasstile.png" if not self.active else "images/grasstile_active.png"
 <Grid>
 
-    battle:self.parent
 
 <Battle>
     orientation:"horizontal"
-
+    id:BATTLE
     UiBox:
         bcol:(0,0,0,1)
         FloatLayout:
             Grid:
+                battle:BATTLE
                 pos:gamescreen.center_x,100
 
     UiBox:
