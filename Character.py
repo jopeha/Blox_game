@@ -15,7 +15,7 @@ class Block(RelativeLayout):
     sprite=StringProperty("images/base_brick_block.png")
     damage=1
     health=3
-    tile=ObjectProperty(None)
+    tile=ObjectProperty(None,allownone=True)
     animpos=ListProperty([0,0])
     scale=NumericProperty(0.8)
     rang=NumericProperty(5)
@@ -52,19 +52,21 @@ class Block(RelativeLayout):
 
     def hop(self,tile):
         last=True
-        d=distance(self.tile.pos,tile.pos)
         self.parent.state="anim"
         self.tile.block = Air()
 
+        d=distance(self.tile.pos,tile.pos)
         m=d/150
         t=.5+.1*m
+
+        i=0
+        z=0
+
         Animation(center_x=tile.center_x,center_y=tile.center_y+tile.blockheight,duration=t).start(self)
         a=Animation(ay=50+50*m,duration=t*.5,t="out_quad")
         b=Animation(ay=0,duration=t*.5,t="in_quad")
-        i=0
-        z=0
+
         t = "self"
-        print(f"im hopping to {tile.gpos} on {'air' if isinstance(tile.block,Air) else 'a block'}")
         if not isinstance(tile.block,Air):
             l=lambda a: [self.hit(tile.block), self.hop(random.choice(tile.adjacenttiles)) ]
             b.on_complete=l
@@ -81,13 +83,12 @@ class Block(RelativeLayout):
         if last:
 
             self.tile=tile
-            print(f"last my tile is in {self.tile.gpos}")
+            self.tile.block=self
 
             self.parent.state="ready"
 
     def on_tile(self,_,tile):
         tile.block=self
-        print(f"my tile is in {tile.gpos}")
 
     def hit(self,block):
         block.health-=self.damage
@@ -98,7 +99,6 @@ class Block(RelativeLayout):
             index=z-i
         else:
             index=sum(self.gpos)-i
-        print(f"BLOK zefresh {index} {t}")
 
         self.parent.remove_widget(self)
         g.add_widget(self,index=index)
