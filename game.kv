@@ -1,4 +1,35 @@
 #:set unit 10
+#:set uibgviz 0
+#UITHINGLETS
+<Icon@UiBox>
+    size_hint_x:None
+    width:self.height
+<DamageIcon@Icon>
+    bcol:(.9,.3,.3,1)
+
+    Label:
+        bold:True
+        text:"A"
+<RangIcon@Icon>
+    bcol:(.7,.7,.2,1)
+    Label:
+        bold:True
+        text:"R"
+<HealthIcon@Icon>
+    bcol:(1,.2,.2,1)
+    Label:
+        bold:True
+        text:"HP"
+
+<StatNum@Label>
+    color:1,1,1,1
+    halign:"left"
+    valign:"middle"
+    text_size:self.size
+    font_size:unit*3
+
+
+
 <UiBox>
     padding:5
     canvas.before:
@@ -28,6 +59,7 @@
         bcol:(0,0,0,1)
         FloatLayout:
             Grid:
+                id:GRID
                 battle:BATTLE
                 pos:gamescreen.center_x,100
 
@@ -36,22 +68,69 @@
 
         UiBox:
             size_hint_x:.2
-            bcol:(1,.5,.5,1)
+            bcol:(1,.5,.5,uibgviz)
             orientation:"vertical"
             UiBox:
                 size_hint_y:.2
-                bcol:(.1,.8,.8,1)
-                Label:
-                    text:"active char"
+                bcol:(.1,.8,.8,uibgviz)
+                orientation:"horizontal"
+                UiBox:
+                    bcol:1,1,1,uibgviz
+                    Widget:
+                        width:self.height
+                        canvas:
+                            Color:
+                                rgba:1,1,1,.8
+                            Rectangle:
+                                size:self.size
+                                pos:self.pos
+                                source:GRID.active_sprite
+
+                UiBox:
+                    orientation:"vertical"
+                    bcol:0,0,0,0
+                    RelativeLayout:
+                        Label:
+                            text:GRID.active_name
+                            size_hint:None,None
+                            height:self.parent.height
+                            width:500
+                            text_size:self.size
+                            valign:"middle"
+                            halign:"left"
+                            font_size:unit*3
+
+                    UiBox:
+                        spacing:5
+                        bcol:1,1,1,uibgviz
+                        orientation:"horizontal"
+                        DamageIcon
+                        StatNum:
+                            text:str(GRID.active_damage)
+
+                    UiBox:
+                        spacing:5
+                        bcol:1,1,1,uibgviz
+                        orientation:"horizontal"
+                        RangIcon
+                        StatNum:
+                            text:str(GRID.active_range)
+                    UiBox:
+                        spacing:5
+                        bcol:1,1,1,uibgviz
+                        orientation:"horizontal"
+                        HealthIcon
+                        StatNum:
+                            text:str(GRID.active_health)
             UiBox:
                 size_hint_y:.2
-                bcol:(.8,.8,.1,1)
+                bcol:(.8,.8,.1,uibgviz)
                 Label:
                     text:"target_char"
 
             UiBox:
                 size_hint_y:.6
-                bcol:(.1,.8,.8,1)
+                bcol:(.1,.8,.8,uibgviz)
                 Label:
                     text:"skills"
 
@@ -63,6 +142,6 @@
 
         UiBox:
             size_hint_x:.07
-            bcol:(0,0,1,.5)
+            bcol:(0,0,1,uibgviz)
 
 Battle

@@ -5,10 +5,19 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 from kivy.properties import ListProperty,StringProperty,ObjectProperty,BooleanProperty
+from kivy.clock import Clock
 import random
-
-from Character import Block,Air
+from Character import *
+from tile import Square
+from player import *
 from tools import distance
+from kivy.config import Config
+from copy import copy
+from functools import partial
+
+
+
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 class UiBox(BoxLayout):
     bcol=ListProperty((1,1,1,1))
@@ -18,67 +27,24 @@ class Battle(RelativeLayout):
     state=StringProperty("ready")
     turn=StringProperty("player")
 
-
     def load(self):
         pass
-
-class Square(Widget):
-
-    active=BooleanProperty(False)
-    bcol=ListProperty((0,0,0,.2))
-    pressed=ListProperty([0,0])
-    gpos=ListProperty((0,0))
-    highlight=BooleanProperty(False)
-    block=ObjectProperty(Air())
-
-    @property
-    def blockheight(self):
-        if not isinstance(self.block,Air):
-            return self.block.blockheight
-        else:
-            return 0
-
-    def on_touch_up(self, touch):
-        if self.collide_point(*touch.pos):
-            self.pressed=touch.pos
-            return True
-        return super().on_touch_down(touch)
-
-    def collide_point(self, x, y):
-        if super().collide_point(x,y):
-            x = abs(self.center_x - x)
-            y = abs(self.center_y - y)
-            if x+y<sum(self.size)/4:
-
-                return True
-        return False
-
-    def on_pressed(self,instance,pos):
-        if self.highlight:
-            return self.parent.active.block.hop(self)
-        self.parent.active=self
-
-    def on_active(self,_,b):
-        if b is True and\
-                self.battle.turn=="player" and\
-                self.block is not None and\
-                not isinstance(self.block,Air) and\
-                self.battle.state=="ready":
-            self.block.activate()
-
-
-    def on_highlight(self,*_):
-        pass
-
-    @property
-    def adjacenttiles(self):
-        return list(filter(lambda a: distance(a.gpos,self.gpos)<=1.5 and a is not self ,self.parent.tiles))
 
 
 
 class Grid(RelativeLayout):
-    _active=ObjectProperty(None)
+    _active=ObjectProperty(None,allownone=True)
     _highlighted=ListProperty([])
+
+    active_name=StringProperty("Some Air")
+    active_icon=StringProperty("1")
+    active_damage=StringProperty("1")
+    active_range=StringProperty("1")
+    active_health=StringProperty("1")
+    active_sprite=StringProperty("images/air.png")
+    _state="not ready"
+    player_turn=ObjectProperty(None)
+    teams=[]
     def __init__(self,**kw):
 
         super().__init__(**kw)
@@ -98,8 +64,16 @@ class Grid(RelativeLayout):
                 self.tiles.append(square)
                 self.add_widget(square,index=fy)
 
-        self.add_block(Block(),self.tiles[10])
-        self.add_block(Block(),self.tiles[11])
+        self.add_block(Block(),self.tiles[3])
+        self.add_block(OldBrickBlock(),self.tiles[1])
+        self.add_block(BrickBlock(),self.tiles[2])
+        for i in range(40):
+            self.add_block(OldBrickBlock(),self.tiles[4+i])
+
+        self.ready()
+
+        for pos,i in enumerate(sorted(self.blocks,key=lambda a:sum(a.gpos))):
+            i.spawn_anim(6*(.4-(3/(pos+1))))
 
     def add_block(self,block,tile):
         block.tile=tile
@@ -108,18 +82,31 @@ class Grid(RelativeLayout):
         self.blocks.append(block)
         block.zefresh()
 
+
+    def ready(self):
+        self.state="ready"
+
+    def kill(self,block):
+        self.blocks.remove(block)
+        self.remove_widget(block)
+        self.ready()
+
     @property
     def state(self):
         return self.battle.state
 
     @state.setter
     def state(self,value):
-        if value=="ready":
-            print()
-            for pos,i in enumerate(reversed(self.tiles)):
-                x="x" if isinstance(i.block,Block) else " "
-                print(x,end=f"|"+(str("\n" if i.gpos[1]==0 else "")))
-        self.battle.state=value
+        if value=="ready" and self._state!="ready":
+            DEAD=[*filter(lambda a:a.health<=0,self.blocks)]
+            for i in DEAD:
+                i.die()
+
+            for i in sorted(self.blocks,key= lambda a:-sum(a.gpos)):
+                self.remove_widget(i)
+                self.add_widget(i)
+            print("did thing")
+        self._state=value
 
     @property
     def highlighted(self):
@@ -142,9 +129,20 @@ class Grid(RelativeLayout):
 
         if self._active is not None:
             self._active.active=False
+
         self.highlighted=[]
-        value.active=True
-        self._active=value
+        if value is not None:
+            value.active=True
+            self._active=value
+            self.active_stats(value.block)
+
+    def active_stats(self,block):
+
+        self.active_name=block.name
+        self.active_damage=str(block.damage)
+        self.active_range= str(block.rang)
+        self.active_health=str(block.health)
+        self.active_sprite = block.sprite
 
 
 class Game(App):
